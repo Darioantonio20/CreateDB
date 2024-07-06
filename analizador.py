@@ -93,7 +93,13 @@ def validate():
         error_message = ''
         if not is_valid:
             error_message = syntactic_result if syntactic_result != "Sintaxis correcta" else semantic_result
-        results.append({'valid': is_valid, 'error': error_message})
+        results.append({
+            'lexical': lexical_results,
+            'syntactic': syntactic_result,
+            'semantic': semantic_result,
+            'valid': is_valid,
+            'error': error_message
+        })
     return jsonify(results)
 
 if __name__ == '__main__':

@@ -25,7 +25,6 @@
         .input, textarea {
             margin-top: 2rem;
             width: 50%;
-            height: 30%;
             border-radius: 10px;
             outline: 2px solid #FEBF00;
             border: 0;
@@ -163,6 +162,25 @@
             top: 8px;
             border: 2px dashed #fff;
         }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 2rem 0;
+        }
+        .analyzer-title {
+            font-size: 1.5rem;
+            color: #FEBF00;
+            margin: 1rem 0 0.5rem 0;
+            text-align: center;
+        }
+        textarea {
+            width: 60%;
+            height: 100px;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body id="body" class="body">
@@ -186,6 +204,15 @@
             </button>
         </center>
     </form>
+    <h2>Resultados del Análisis</h2>
+    <div class="container">
+        <div class="analyzer-title">Resultados Léxicos</div>
+        <textarea id="lexicalResults" placeholder="Resultados Léxicos"></textarea>
+        <div class="analyzer-title">Resultados Sintácticos</div>
+        <textarea id="syntacticResults" placeholder="Resultados Sintácticos"></textarea>
+        <div class="analyzer-title">Resultados Semánticos</div>
+        <textarea id="semanticResults" placeholder="Resultados Semánticos"></textarea>
+    </div>
     <footer>
         <h1 class="titulio">Darío Antonio Gutiérrez Álvarez - 2221245</h1>
     </footer>
@@ -218,6 +245,14 @@
 
             const results = await response.json();
 
+            const lexicalResults = document.getElementById('lexicalResults');
+            const syntacticResults = document.getElementById('syntacticResults');
+            const semanticResults = document.getElementById('semanticResults');
+
+            lexicalResults.value = '';
+            syntacticResults.value = '';
+            semanticResults.value = '';
+
             inputs.forEach((input, index) => {
                 if (results[index].valid) {
                     input.classList.remove('invalid');
@@ -227,6 +262,10 @@
                     input.classList.add('invalid');
                     alert(`Error en el campo ${index + 1}: ${results[index].error}`);
                 }
+
+                lexicalResults.value += `Consulta ${index + 1}: ${JSON.stringify(results[index].lexical)}\n`;
+                syntacticResults.value += `Consulta ${index + 1}: ${results[index].syntactic}\n`;
+                semanticResults.value += `Consulta ${index + 1}: ${results[index].semantic}\n`;
             });
         });
     </script>
