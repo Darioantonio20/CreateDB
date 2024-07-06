@@ -8,7 +8,7 @@ app = Flask(__name__)
 tokens = ['PR', 'ID', 'NUM', 'SYM', 'STR', 'ERR']
 
 # Definiciones de los tokens
-t_PR = r'\b(SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE)\b'
+t_PR = r'\b(SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|DATABASE|TABLE|USE|PRIMARY|KEY)\b'
 t_ID = r'\b[a-zA-Z_][a-zA-Z_0-9]*\b'
 t_NUM = r'\b\d+\b'
 t_SYM = r'[;,*=<>!+-/*]'
@@ -34,18 +34,20 @@ def analyze_lexical(code):
 
 def analyze_syntactic(code):
     errors = []
-    # Verificar estructura básica de una consulta SQL
-    if not re.match(r"SELECT .* FROM .*;", code, re.IGNORECASE):
-        errors.append("Estructura básica de consulta SQL no válida. Debe contener 'SELECT ... FROM ...;'")
-    if "WHERE" in code.upper() and not re.search(r"WHERE\s+.+", code, re.IGNORECASE):
-        errors.append("Estructura básica de 'WHERE' no válida.")
-    if "INSERT INTO" in code.upper() and not re.search(r"INSERT INTO\s+\w+\s*\(.+\)\s*VALUES\s*\(.+\);", code, re.IGNORECASE):
-        errors.append("Estructura básica de 'INSERT INTO' no válida.")
-    if "UPDATE" in code.upper() and not re.search(r"UPDATE\s+\w+\s+SET\s+.+\s+WHERE\s+.+;", code, re.IGNORECASE):
-        errors.append("Estructura básica de 'UPDATE' no válida.")
-    if "DELETE FROM" in code.upper() and not re.search(r"DELETE FROM\s+\w+\s+WHERE\s+.+;", code, re.IGNORECASE):
-        errors.append("Estructura básica de 'DELETE FROM' no válida.")
-
+    if re.match(r"^CREATE DATABASE \w+;$", code, re.IGNORECASE):
+        return "Sintaxis correcta"
+    elif re.match(r"^USE \w+;$", code, re.IGNORECASE):
+        return "Sintaxis correcta"
+    elif re.match(r"^CREATE TABLE \w+ \(\w+ \w+ PRIMARY KEY(, \w+ \w+)*\);$", code, re.IGNORECASE):
+        return "Sintaxis correcta"
+    elif re.match(r"^INSERT INTO \w+ \(\w+(, \w+)*\) VALUES \(.+\);$", code, re.IGNORECASE):
+        return "Sintaxis correcta"
+    elif re.match(r"^UPDATE \w+ SET \w+ = .+ WHERE \w+ = .+;$", code, re.IGNORECASE):
+        return "Sintaxis correcta"
+    elif re.match(r"^DELETE FROM \w+ WHERE \w+ = .+;$", code, re.IGNORECASE):
+        return "Sintaxis correcta"
+    else:
+        errors.append("Estructura básica de consulta SQL no válida.")
     if not errors:
         return "Sintaxis correcta"
     else:
@@ -53,21 +55,20 @@ def analyze_syntactic(code):
 
 def analyze_semantic(code):
     errors = []
-    declared_tables = set()
+    declared_tables = set(['mi_tabla'])
 
-    # Verificar que las tablas mencionadas en FROM existan (simulado)
     tables = re.findall(r"FROM\s+(\w+)", code, re.IGNORECASE)
     for table in tables:
+        if table not in declared_tables:
+            errors.append(f"Tabla '{table}' no existe.")
         declared_tables.add(table)
 
-    # Verificar columnas en SELECT
-    columns = re.findall(r"SELECT\s+(.+?)\s+FROM", code, re.IGNORECASE)
+    columns = re.findall(r"INSERT INTO \w+ \((.+?)\) VALUES", code, re.IGNORECASE)
     if columns:
         columns = columns[0].split(',')
         for col in columns:
             col = col.strip()
-            # Simular la verificación de que las columnas existan en las tablas mencionadas
-            if col != '*' and col not in declared_tables:
+            if col not in ['id', 'nombre', 'edad']:
                 errors.append(f"Columna '{col}' no existe en las tablas declaradas.")
 
     if not errors:
