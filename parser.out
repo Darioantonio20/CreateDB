@@ -1,0 +1,545 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    INT
+    VARCHAR
+
+Grammar
+
+Rule 0     S' -> statement
+Rule 1     statement -> CREATE DATABASE ID SEMICOLON
+Rule 2     statement -> USE ID SEMICOLON
+Rule 3     statement -> CREATE TABLE ID LPAREN column_definitions RPAREN SEMICOLON
+Rule 4     column_definitions -> column_definitions COMMA column_definition
+Rule 5     column_definitions -> column_definition
+Rule 6     column_definition -> ID ID constraints
+Rule 7     constraints -> PRIMARY KEY
+Rule 8     constraints -> empty
+Rule 9     statement -> INSERT INTO ID LPAREN ID RPAREN VALUES LPAREN value_list RPAREN SEMICOLON
+Rule 10    value_list -> value_list COMMA value
+Rule 11    value_list -> value
+Rule 12    value -> NUMBER
+Rule 13    value -> STRING
+Rule 14    statement -> UPDATE ID SET ID EQUALS value WHERE ID EQUALS value SEMICOLON
+Rule 15    statement -> DELETE FROM ID WHERE ID EQUALS value SEMICOLON
+Rule 16    empty -> <empty>
+
+Terminals, with rules where they appear
+
+COMMA                : 4 10
+CREATE               : 1 3
+DATABASE             : 1
+DELETE               : 15
+EQUALS               : 14 14 15
+FROM                 : 15
+ID                   : 1 2 3 6 6 9 9 14 14 14 15 15
+INSERT               : 9
+INT                  : 
+INTO                 : 9
+KEY                  : 7
+LPAREN               : 3 9 9
+NUMBER               : 12
+PRIMARY              : 7
+RPAREN               : 3 9 9
+SEMICOLON            : 1 2 3 9 14 15
+SET                  : 14
+STRING               : 13
+TABLE                : 3
+UPDATE               : 14
+USE                  : 2
+VALUES               : 9
+VARCHAR              : 
+WHERE                : 14 15
+error                : 
+
+Nonterminals, with rules where they appear
+
+column_definition    : 4 5
+column_definitions   : 3 4
+constraints          : 6
+empty                : 8
+statement            : 0
+value                : 10 11 14 14 15
+value_list           : 9 10
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . statement
+    (1) statement -> . CREATE DATABASE ID SEMICOLON
+    (2) statement -> . USE ID SEMICOLON
+    (3) statement -> . CREATE TABLE ID LPAREN column_definitions RPAREN SEMICOLON
+    (9) statement -> . INSERT INTO ID LPAREN ID RPAREN VALUES LPAREN value_list RPAREN SEMICOLON
+    (14) statement -> . UPDATE ID SET ID EQUALS value WHERE ID EQUALS value SEMICOLON
+    (15) statement -> . DELETE FROM ID WHERE ID EQUALS value SEMICOLON
+
+    CREATE          shift and go to state 2
+    USE             shift and go to state 3
+    INSERT          shift and go to state 4
+    UPDATE          shift and go to state 5
+    DELETE          shift and go to state 6
+
+    statement                      shift and go to state 1
+
+state 1
+
+    (0) S' -> statement .
+
+
+
+state 2
+
+    (1) statement -> CREATE . DATABASE ID SEMICOLON
+    (3) statement -> CREATE . TABLE ID LPAREN column_definitions RPAREN SEMICOLON
+
+    DATABASE        shift and go to state 7
+    TABLE           shift and go to state 8
+
+
+state 3
+
+    (2) statement -> USE . ID SEMICOLON
+
+    ID              shift and go to state 9
+
+
+state 4
+
+    (9) statement -> INSERT . INTO ID LPAREN ID RPAREN VALUES LPAREN value_list RPAREN SEMICOLON
+
+    INTO            shift and go to state 10
+
+
+state 5
+
+    (14) statement -> UPDATE . ID SET ID EQUALS value WHERE ID EQUALS value SEMICOLON
+
+    ID              shift and go to state 11
+
+
+state 6
+
+    (15) statement -> DELETE . FROM ID WHERE ID EQUALS value SEMICOLON
+
+    FROM            shift and go to state 12
+
+
+state 7
+
+    (1) statement -> CREATE DATABASE . ID SEMICOLON
+
+    ID              shift and go to state 13
+
+
+state 8
+
+    (3) statement -> CREATE TABLE . ID LPAREN column_definitions RPAREN SEMICOLON
+
+    ID              shift and go to state 14
+
+
+state 9
+
+    (2) statement -> USE ID . SEMICOLON
+
+    SEMICOLON       shift and go to state 15
+
+
+state 10
+
+    (9) statement -> INSERT INTO . ID LPAREN ID RPAREN VALUES LPAREN value_list RPAREN SEMICOLON
+
+    ID              shift and go to state 16
+
+
+state 11
+
+    (14) statement -> UPDATE ID . SET ID EQUALS value WHERE ID EQUALS value SEMICOLON
+
+    SET             shift and go to state 17
+
+
+state 12
+
+    (15) statement -> DELETE FROM . ID WHERE ID EQUALS value SEMICOLON
+
+    ID              shift and go to state 18
+
+
+state 13
+
+    (1) statement -> CREATE DATABASE ID . SEMICOLON
+
+    SEMICOLON       shift and go to state 19
+
+
+state 14
+
+    (3) statement -> CREATE TABLE ID . LPAREN column_definitions RPAREN SEMICOLON
+
+    LPAREN          shift and go to state 20
+
+
+state 15
+
+    (2) statement -> USE ID SEMICOLON .
+
+    $end            reduce using rule 2 (statement -> USE ID SEMICOLON .)
+
+
+state 16
+
+    (9) statement -> INSERT INTO ID . LPAREN ID RPAREN VALUES LPAREN value_list RPAREN SEMICOLON
+
+    LPAREN          shift and go to state 21
+
+
+state 17
+
+    (14) statement -> UPDATE ID SET . ID EQUALS value WHERE ID EQUALS value SEMICOLON
+
+    ID              shift and go to state 22
+
+
+state 18
+
+    (15) statement -> DELETE FROM ID . WHERE ID EQUALS value SEMICOLON
+
+    WHERE           shift and go to state 23
+
+
+state 19
+
+    (1) statement -> CREATE DATABASE ID SEMICOLON .
+
+    $end            reduce using rule 1 (statement -> CREATE DATABASE ID SEMICOLON .)
+
+
+state 20
+
+    (3) statement -> CREATE TABLE ID LPAREN . column_definitions RPAREN SEMICOLON
+    (4) column_definitions -> . column_definitions COMMA column_definition
+    (5) column_definitions -> . column_definition
+    (6) column_definition -> . ID ID constraints
+
+    ID              shift and go to state 24
+
+    column_definitions             shift and go to state 25
+    column_definition              shift and go to state 26
+
+state 21
+
+    (9) statement -> INSERT INTO ID LPAREN . ID RPAREN VALUES LPAREN value_list RPAREN SEMICOLON
+
+    ID              shift and go to state 27
+
+
+state 22
+
+    (14) statement -> UPDATE ID SET ID . EQUALS value WHERE ID EQUALS value SEMICOLON
+
+    EQUALS          shift and go to state 28
+
+
+state 23
+
+    (15) statement -> DELETE FROM ID WHERE . ID EQUALS value SEMICOLON
+
+    ID              shift and go to state 29
+
+
+state 24
+
+    (6) column_definition -> ID . ID constraints
+
+    ID              shift and go to state 30
+
+
+state 25
+
+    (3) statement -> CREATE TABLE ID LPAREN column_definitions . RPAREN SEMICOLON
+    (4) column_definitions -> column_definitions . COMMA column_definition
+
+    RPAREN          shift and go to state 31
+    COMMA           shift and go to state 32
+
+
+state 26
+
+    (5) column_definitions -> column_definition .
+
+    RPAREN          reduce using rule 5 (column_definitions -> column_definition .)
+    COMMA           reduce using rule 5 (column_definitions -> column_definition .)
+
+
+state 27
+
+    (9) statement -> INSERT INTO ID LPAREN ID . RPAREN VALUES LPAREN value_list RPAREN SEMICOLON
+
+    RPAREN          shift and go to state 33
+
+
+state 28
+
+    (14) statement -> UPDATE ID SET ID EQUALS . value WHERE ID EQUALS value SEMICOLON
+    (12) value -> . NUMBER
+    (13) value -> . STRING
+
+    NUMBER          shift and go to state 35
+    STRING          shift and go to state 36
+
+    value                          shift and go to state 34
+
+state 29
+
+    (15) statement -> DELETE FROM ID WHERE ID . EQUALS value SEMICOLON
+
+    EQUALS          shift and go to state 37
+
+
+state 30
+
+    (6) column_definition -> ID ID . constraints
+    (7) constraints -> . PRIMARY KEY
+    (8) constraints -> . empty
+    (16) empty -> .
+
+    PRIMARY         shift and go to state 39
+    RPAREN          reduce using rule 16 (empty -> .)
+    COMMA           reduce using rule 16 (empty -> .)
+
+    constraints                    shift and go to state 38
+    empty                          shift and go to state 40
+
+state 31
+
+    (3) statement -> CREATE TABLE ID LPAREN column_definitions RPAREN . SEMICOLON
+
+    SEMICOLON       shift and go to state 41
+
+
+state 32
+
+    (4) column_definitions -> column_definitions COMMA . column_definition
+    (6) column_definition -> . ID ID constraints
+
+    ID              shift and go to state 24
+
+    column_definition              shift and go to state 42
+
+state 33
+
+    (9) statement -> INSERT INTO ID LPAREN ID RPAREN . VALUES LPAREN value_list RPAREN SEMICOLON
+
+    VALUES          shift and go to state 43
+
+
+state 34
+
+    (14) statement -> UPDATE ID SET ID EQUALS value . WHERE ID EQUALS value SEMICOLON
+
+    WHERE           shift and go to state 44
+
+
+state 35
+
+    (12) value -> NUMBER .
+
+    WHERE           reduce using rule 12 (value -> NUMBER .)
+    SEMICOLON       reduce using rule 12 (value -> NUMBER .)
+    RPAREN          reduce using rule 12 (value -> NUMBER .)
+    COMMA           reduce using rule 12 (value -> NUMBER .)
+
+
+state 36
+
+    (13) value -> STRING .
+
+    WHERE           reduce using rule 13 (value -> STRING .)
+    SEMICOLON       reduce using rule 13 (value -> STRING .)
+    RPAREN          reduce using rule 13 (value -> STRING .)
+    COMMA           reduce using rule 13 (value -> STRING .)
+
+
+state 37
+
+    (15) statement -> DELETE FROM ID WHERE ID EQUALS . value SEMICOLON
+    (12) value -> . NUMBER
+    (13) value -> . STRING
+
+    NUMBER          shift and go to state 35
+    STRING          shift and go to state 36
+
+    value                          shift and go to state 45
+
+state 38
+
+    (6) column_definition -> ID ID constraints .
+
+    RPAREN          reduce using rule 6 (column_definition -> ID ID constraints .)
+    COMMA           reduce using rule 6 (column_definition -> ID ID constraints .)
+
+
+state 39
+
+    (7) constraints -> PRIMARY . KEY
+
+    KEY             shift and go to state 46
+
+
+state 40
+
+    (8) constraints -> empty .
+
+    RPAREN          reduce using rule 8 (constraints -> empty .)
+    COMMA           reduce using rule 8 (constraints -> empty .)
+
+
+state 41
+
+    (3) statement -> CREATE TABLE ID LPAREN column_definitions RPAREN SEMICOLON .
+
+    $end            reduce using rule 3 (statement -> CREATE TABLE ID LPAREN column_definitions RPAREN SEMICOLON .)
+
+
+state 42
+
+    (4) column_definitions -> column_definitions COMMA column_definition .
+
+    RPAREN          reduce using rule 4 (column_definitions -> column_definitions COMMA column_definition .)
+    COMMA           reduce using rule 4 (column_definitions -> column_definitions COMMA column_definition .)
+
+
+state 43
+
+    (9) statement -> INSERT INTO ID LPAREN ID RPAREN VALUES . LPAREN value_list RPAREN SEMICOLON
+
+    LPAREN          shift and go to state 47
+
+
+state 44
+
+    (14) statement -> UPDATE ID SET ID EQUALS value WHERE . ID EQUALS value SEMICOLON
+
+    ID              shift and go to state 48
+
+
+state 45
+
+    (15) statement -> DELETE FROM ID WHERE ID EQUALS value . SEMICOLON
+
+    SEMICOLON       shift and go to state 49
+
+
+state 46
+
+    (7) constraints -> PRIMARY KEY .
+
+    RPAREN          reduce using rule 7 (constraints -> PRIMARY KEY .)
+    COMMA           reduce using rule 7 (constraints -> PRIMARY KEY .)
+
+
+state 47
+
+    (9) statement -> INSERT INTO ID LPAREN ID RPAREN VALUES LPAREN . value_list RPAREN SEMICOLON
+    (10) value_list -> . value_list COMMA value
+    (11) value_list -> . value
+    (12) value -> . NUMBER
+    (13) value -> . STRING
+
+    NUMBER          shift and go to state 35
+    STRING          shift and go to state 36
+
+    value_list                     shift and go to state 50
+    value                          shift and go to state 51
+
+state 48
+
+    (14) statement -> UPDATE ID SET ID EQUALS value WHERE ID . EQUALS value SEMICOLON
+
+    EQUALS          shift and go to state 52
+
+
+state 49
+
+    (15) statement -> DELETE FROM ID WHERE ID EQUALS value SEMICOLON .
+
+    $end            reduce using rule 15 (statement -> DELETE FROM ID WHERE ID EQUALS value SEMICOLON .)
+
+
+state 50
+
+    (9) statement -> INSERT INTO ID LPAREN ID RPAREN VALUES LPAREN value_list . RPAREN SEMICOLON
+    (10) value_list -> value_list . COMMA value
+
+    RPAREN          shift and go to state 53
+    COMMA           shift and go to state 54
+
+
+state 51
+
+    (11) value_list -> value .
+
+    RPAREN          reduce using rule 11 (value_list -> value .)
+    COMMA           reduce using rule 11 (value_list -> value .)
+
+
+state 52
+
+    (14) statement -> UPDATE ID SET ID EQUALS value WHERE ID EQUALS . value SEMICOLON
+    (12) value -> . NUMBER
+    (13) value -> . STRING
+
+    NUMBER          shift and go to state 35
+    STRING          shift and go to state 36
+
+    value                          shift and go to state 55
+
+state 53
+
+    (9) statement -> INSERT INTO ID LPAREN ID RPAREN VALUES LPAREN value_list RPAREN . SEMICOLON
+
+    SEMICOLON       shift and go to state 56
+
+
+state 54
+
+    (10) value_list -> value_list COMMA . value
+    (12) value -> . NUMBER
+    (13) value -> . STRING
+
+    NUMBER          shift and go to state 35
+    STRING          shift and go to state 36
+
+    value                          shift and go to state 57
+
+state 55
+
+    (14) statement -> UPDATE ID SET ID EQUALS value WHERE ID EQUALS value . SEMICOLON
+
+    SEMICOLON       shift and go to state 58
+
+
+state 56
+
+    (9) statement -> INSERT INTO ID LPAREN ID RPAREN VALUES LPAREN value_list RPAREN SEMICOLON .
+
+    $end            reduce using rule 9 (statement -> INSERT INTO ID LPAREN ID RPAREN VALUES LPAREN value_list RPAREN SEMICOLON .)
+
+
+state 57
+
+    (10) value_list -> value_list COMMA value .
+
+    RPAREN          reduce using rule 10 (value_list -> value_list COMMA value .)
+    COMMA           reduce using rule 10 (value_list -> value_list COMMA value .)
+
+
+state 58
+
+    (14) statement -> UPDATE ID SET ID EQUALS value WHERE ID EQUALS value SEMICOLON .
+
+    $end            reduce using rule 14 (statement -> UPDATE ID SET ID EQUALS value WHERE ID EQUALS value SEMICOLON .)
+
