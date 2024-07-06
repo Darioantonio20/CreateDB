@@ -235,16 +235,6 @@
                 queries.push(input.value);
             });
 
-            const response = await fetch('/validate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ queries })
-            });
-
-            const results = await response.json();
-
             const lexicalResults = document.getElementById('lexicalResults');
             const syntacticResults = document.getElementById('syntacticResults');
             const semanticResults = document.getElementById('semanticResults');
@@ -253,20 +243,46 @@
             syntacticResults.value = '';
             semanticResults.value = '';
 
+            // Hacer la petición POST al servidor local para validación
+            const localResponse = await fetch('/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ queries })
+            });
+
+            const localResults = await localResponse.json();
+
             inputs.forEach((input, index) => {
-                if (results[index].valid) {
+                if (localResults[index].valid) {
                     input.classList.remove('invalid');
                     input.classList.add('valid');
                 } else {
                     input.classList.remove('valid');
                     input.classList.add('invalid');
-                    alert(`Error en el campo ${index + 1}: ${results[index].error}`);
+                    alert(`Error en el campo ${index + 1}: ${localResults[index].error}`);
                 }
 
-                lexicalResults.value += `Consulta ${index + 1}: ${JSON.stringify(results[index].lexical)}\n`;
-                syntacticResults.value += `Consulta ${index + 1}: ${results[index].syntactic}\n`;
-                semanticResults.value += `Consulta ${index + 1}: ${results[index].semantic}\n`;
+                lexicalResults.value += `Consulta ${index + 1}: ${JSON.stringify(localResults[index].lexical)}\n`;
+                syntacticResults.value += `Consulta ${index + 1}: ${localResults[index].syntactic}\n`;
+                semanticResults.value += `Consulta ${index + 1}: ${localResults[index].semantic}\n`;
             });
+
+            // Hacer la petición POST al endpoint remoto
+            for (const query of queries) {
+                const remoteResponse = await fetch('http://100.29.73.189:8080/api/sql/execute-sql', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ sql: query })
+                });
+
+                const remoteResults = await remoteResponse.json();
+                console.log('Resultados del endpoint remoto:', remoteResults);
+                // Aquí puedes manejar los resultados del endpoint remoto si es necesario
+            }
         });
     </script>
 </body>
