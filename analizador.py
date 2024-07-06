@@ -1,163 +1,99 @@
 from flask import Flask, request, jsonify, render_template
+import re
 import ply.lex as lex
-import ply.yacc as yacc
 
 app = Flask(__name__)
 
-# Definir los tokens y las palabras reservadas
-tokens = (
-    'ID',
-    'SEMICOLON',
-    'LPAREN',
-    'RPAREN',
-    'COMMA',
-    'INT',
-    'VARCHAR',
-    'PRIMARY',
-    'KEY',
-    'VALUES',
-    'SET',
-    'WHERE',
-    'EQUALS',
-    'STRING',
-    'NUMBER',
-    'FROM'
-)
+# Lista de nombres de tokens
+tokens = ['PR', 'ID', 'NUM', 'SYM', 'STR', 'ERR']
 
-reserved = {
-    'create': 'CREATE',
-    'database': 'DATABASE',
-    'use': 'USE',
-    'table': 'TABLE',
-    'insert': 'INSERT',
-    'into': 'INTO',
-    'update': 'UPDATE',
-    'delete': 'DELETE',
-}
-
-tokens = tokens + tuple(reserved.values())
-
-# Reglas de expresión regular para tokens simples
-t_SEMICOLON = r';'
-t_LPAREN = r'\('
-t_RPAREN = r'\)'
-t_COMMA = r','
-t_EQUALS = r'='
-
-def t_ID(t):
-    r'[a-zA-Z_][a-zA-Z_0-9]*'
-    t.type = reserved.get(t.value, 'ID')
-    return t
-
-def t_STRING(t):
-    r'\'[^\']*\''
-    t.value = t.value[1:-1]  # Remover comillas
-    return t
-
-def t_NUMBER(t):
-    r'\d+'
-    t.value = int(t.value)
-    return t
-
-t_ignore = ' \t'
-
-def t_newline(t):
-    r'\n+'
-    t.lexer.lineno += len(t.value)
+# Definiciones de los tokens
+t_PR = r'\b(SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE)\b'
+t_ID = r'\b[a-zA-Z_][a-zA-Z_0-9]*\b'
+t_NUM = r'\b\d+\b'
+t_SYM = r'[;,*=<>!+-/*]'
+t_STR = r'\'[^\']*\''
+t_ERR = r'.'
 
 def t_error(t):
-    raise SyntaxError(f"Illegal character '{t.value[0]}' at line {t.lineno}")
+    print(f"Carácter ilegal '{t.value[0]}'")
+    t.lexer.skip(1)
 
 lexer = lex.lex()
 
-# Reglas de análisis sintáctico
-def p_statement_create_database(p):
-    'statement : CREATE DATABASE ID SEMICOLON'
-    p[0] = ('CREATE DATABASE', p[3])
+def analyze_lexical(code):
+    results = {'PR': 0, 'ID': 0, 'NUM': 0, 'STR': 0, 'SYM': 0, 'ERR': 0}
+    lexer.input(code)
+    while True:
+        tok = lexer.token()
+        if not tok:
+            break
+        token_name = tok.type
+        results[token_name] += 1
+    return results
 
-def p_statement_use_database(p):
-    'statement : USE ID SEMICOLON'
-    p[0] = ('USE DATABASE', p[2])
+def analyze_syntactic(code):
+    errors = []
+    # Verificar estructura básica de una consulta SQL
+    if not re.match(r"SELECT .* FROM .*;", code, re.IGNORECASE):
+        errors.append("Estructura básica de consulta SQL no válida. Debe contener 'SELECT ... FROM ...;'")
+    if "WHERE" in code.upper() and not re.search(r"WHERE\s+.+", code, re.IGNORECASE):
+        errors.append("Estructura básica de 'WHERE' no válida.")
+    if "INSERT INTO" in code.upper() and not re.search(r"INSERT INTO\s+\w+\s*\(.+\)\s*VALUES\s*\(.+\);", code, re.IGNORECASE):
+        errors.append("Estructura básica de 'INSERT INTO' no válida.")
+    if "UPDATE" in code.upper() and not re.search(r"UPDATE\s+\w+\s+SET\s+.+\s+WHERE\s+.+;", code, re.IGNORECASE):
+        errors.append("Estructura básica de 'UPDATE' no válida.")
+    if "DELETE FROM" in code.upper() and not re.search(r"DELETE FROM\s+\w+\s+WHERE\s+.+;", code, re.IGNORECASE):
+        errors.append("Estructura básica de 'DELETE FROM' no válida.")
 
-def p_statement_create_table(p):
-    'statement : CREATE TABLE ID LPAREN column_definitions RPAREN SEMICOLON'
-    p[0] = ('CREATE TABLE', p[3], p[5])
-
-def p_column_definitions(p):
-    '''column_definitions : column_definitions COMMA column_definition
-                          | column_definition'''
-    if len(p) == 4:
-        p[0] = p[1] + [p[3]]
+    if not errors:
+        return "Sintaxis correcta"
     else:
-        p[0] = [p[1]]
+        return " ".join(errors)
 
-def p_column_definition(p):
-    'column_definition : ID ID constraints'
-    p[0] = (p[1], p[2], p[3])
+def analyze_semantic(code):
+    errors = []
+    declared_tables = set()
 
-def p_constraints(p):
-    '''constraints : PRIMARY KEY
-                   | empty'''
-    if len(p) == 3:
-        p[0] = ('PRIMARY KEY',)
+    # Verificar que las tablas mencionadas en FROM existan (simulado)
+    tables = re.findall(r"FROM\s+(\w+)", code, re.IGNORECASE)
+    for table in tables:
+        declared_tables.add(table)
+
+    # Verificar columnas en SELECT
+    columns = re.findall(r"SELECT\s+(.+?)\s+FROM", code, re.IGNORECASE)
+    if columns:
+        columns = columns[0].split(',')
+        for col in columns:
+            col = col.strip()
+            # Simular la verificación de que las columnas existan en las tablas mencionadas
+            if col != '*' and col not in declared_tables:
+                errors.append(f"Columna '{col}' no existe en las tablas declaradas.")
+
+    if not errors:
+        return "Uso correcto de las estructuras semánticas"
     else:
-        p[0] = ()
-
-def p_statement_insert_into(p):
-    'statement : INSERT INTO ID LPAREN ID RPAREN VALUES LPAREN value_list RPAREN SEMICOLON'
-    p[0] = ('INSERT INTO', p[3], p[5], p[9])
-
-def p_value_list(p):
-    '''value_list : value_list COMMA value
-                  | value'''
-    if len(p) == 4:
-        p[0] = p[1] + [p[3]]
-    else:
-        p[0] = [p[1]]
-
-def p_value(p):
-    '''value : NUMBER
-             | STRING'''
-    p[0] = p[1]
-
-def p_statement_update(p):
-    'statement : UPDATE ID SET ID EQUALS value WHERE ID EQUALS value SEMICOLON'
-    p[0] = ('UPDATE', p[2], p[4], p[6], p[8], p[10])
-
-def p_statement_delete(p):
-    'statement : DELETE FROM ID WHERE ID EQUALS value SEMICOLON'
-    p[0] = ('DELETE', p[3], p[5], p[7])
-
-def p_empty(p):
-    'empty :'
-    p[0] = None
-
-def p_error(p):
-    if p:
-        raise SyntaxError(f"Syntax error at '{p.value}'")
-    else:
-        raise SyntaxError("Syntax error at EOF")
-
-parser = yacc.yacc()
-
-def validate_sql(sql):
-    try:
-        parser.parse(sql)
-        return {'valid': True}
-    except SyntaxError as e:
-        return {'valid': False, 'error': str(e)}
+        return " ".join(errors)
 
 @app.route('/')
-def home():
+def index():
     return render_template('index.html')
 
 @app.route('/validate', methods=['POST'])
 def validate():
-    sql_queries = request.json.get('queries', [])
-    validation_results = []
-    for query in sql_queries:
-        validation_results.append(validate_sql(query))
-    return jsonify(validation_results)
+    data = request.json
+    queries = data.get('queries', [])
+    results = []
+    for query in queries:
+        lexical_results = analyze_lexical(query)
+        syntactic_result = analyze_syntactic(query)
+        semantic_result = analyze_semantic(query)
+        is_valid = syntactic_result == "Sintaxis correcta" and semantic_result == "Uso correcto de las estructuras semánticas"
+        error_message = ''
+        if not is_valid:
+            error_message = syntactic_result if syntactic_result != "Sintaxis correcta" else semantic_result
+        results.append({'valid': is_valid, 'error': error_message})
+    return jsonify(results)
 
 if __name__ == '__main__':
     app.run(debug=True)
