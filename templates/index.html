@@ -192,30 +192,45 @@
         </div>          
     </header>
     <h2>Sigue el siguiente flujito...</h2>
-    <form id="sqlForm">
+
+    <h2>Crear Usuario</h2>
+    <form id="createUserForm">
+        <center>
+            <input type="text" placeholder="Nombre de usuario" id="newUsername" class="input">
+            <input type="password" placeholder="Contraseña" id="newPassword" class="input">
+            <button type="submit"><span>Crear Usuario</span></button>
+        </center>
+    </form>
+
+    <h2>Login</h2>
+    <form id="loginForm">
+        <center>
+            <input type="text" placeholder="Nombre de usuario" id="loginUsername" class="input">
+            <input type="password" placeholder="Contraseña" id="loginPassword" class="input">
+            <button type="submit"><span>Login</span></button>
+        </center>
+    </form>
+
+    <h2>Comandos SQL</h2>
+    <form id="sqlForm" style="display:none;">
         <center>
             <input type="text" placeholder="1. Crea tu base de datos (CREATE DATABASE)" name="query1" class="input">
             <input type="text" placeholder="2. Ubicate en tu base de datos (USE)" name="query2" class="input">
             <input type="text" placeholder="3. Crea una tabla en tu base de datos (CREATE TABLE)" name="query3" class="input">
             <input type="text" placeholder="4. Añade entradas a tu base de datos (INSERT INTO)" name="query4" class="input">
             <input type="text" placeholder="5. Modifica o elimina tus entradas (UPDATE, DELETE)" name="query5" class="input">
-            <button type="submit">
-                <span>Ejecutar</span>
-            </button>
+            <button type="submit"><span>Ejecutar</span></button>
         </center>
     </form>
+    
     <h2>Resultados del Análisis</h2>
     <div class="container">
         <div class="analyzer-title">Resultados Léxicos</div>
         <textarea id="lexicalResults" placeholder="Resultados Léxicos"></textarea>
         <div class="analyzer-title">Resultados Sintácticos</div>
         <textarea id="syntacticResults" placeholder="Resultados Sintácticos"></textarea>
-        <div class="analyzer-title">Resultados Semánticos</div>
-        <textarea id="semanticResults" placeholder="Resultados Semánticos"></textarea>
     </div>
-    <footer>
-        <h1 class="titulio">Darío Antonio Gutiérrez Álvarez - 2221245</h1>
-    </footer>
+
     <script>
         document.getElementById('botonModoOscuroClaro').addEventListener('click', function() {
             var body = document.getElementById('body');
@@ -223,6 +238,39 @@
                 body.style.backgroundColor = '#000000';
             } else {
                 body.style.backgroundColor = '#ffffff';
+            }
+        });
+
+        const users = [];
+
+        document.getElementById('createUserForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+
+            if (username && password) {
+                users.push({ username, password });
+                alert('Usuario creado exitosamente');
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newPassword').value = '';
+            } else {
+                alert('Por favor ingresa un nombre de usuario y una contraseña válidos');
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const user = users.find(user => user.username === username && user.password === password);
+
+            if (user) {
+                alert('Login exitoso');
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('sqlForm').style.display = 'block';
+            } else {
+                alert('Nombre de usuario o contraseña incorrectos');
             }
         });
 
@@ -243,45 +291,51 @@
             syntacticResults.value = '';
             semanticResults.value = '';
 
-            // Hacer la petición POST al servidor local para validación
-            const localResponse = await fetch('/validate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ queries })
-            });
-
-            const localResults = await localResponse.json();
-
-            inputs.forEach((input, index) => {
-                if (localResults[index].valid) {
-                    input.classList.remove('invalid');
-                    input.classList.add('valid');
-                } else {
-                    input.classList.remove('valid');
-                    input.classList.add('invalid');
-                    alert(`Error en el campo ${index + 1}: ${localResults[index].error}`);
-                }
-
-                lexicalResults.value += `Consulta ${index + 1}: ${JSON.stringify(localResults[index].lexical)}\n`;
-                syntacticResults.value += `Consulta ${index + 1}: ${localResults[index].syntactic}\n`;
-                semanticResults.value += `Consulta ${index + 1}: ${localResults[index].semantic}\n`;
-            });
-
-            // Hacer la petición POST al endpoint remoto
-            for (const query of queries) {
-                const remoteResponse = await fetch('http://100.29.73.189:8080/api/sql/execute-sql', {
+            try {
+                const localResponse = await fetch('/validate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ sql: query })
+                    body: JSON.stringify({ queries })
                 });
 
-                const remoteResults = await remoteResponse.json();
-                console.log('Resultados del endpoint remoto:', remoteResults);
-                // Aquí puedes manejar los resultados del endpoint remoto si es necesario
+                const localResults = await localResponse.json();
+
+                inputs.forEach((input, index) => {
+                    if (localResults[index].valid) {
+                        input.classList.remove('invalid');
+                        input.classList.add('valid');
+                    } else {
+                        input.classList.remove('valid');
+                        input.classList.add('invalid');
+                        alert(`Error en el campo ${index + 1}: ${localResults[index].error}`);
+                    }
+
+                    lexicalResults.value += `Consulta ${index + 1}: ${JSON.stringify(localResults[index].lexical)}\n`;
+                    syntacticResults.value += `Consulta ${index + 1}: ${localResults[index].syntactic}\n`;
+                    semanticResults.value += `Consulta ${index + 1}: ${localResults[index].semantic}\n`;
+                });
+
+                for (const query of queries) {
+                    const remoteResponse = await fetch('http://100.29.73.189:8080/api/sql/execute-sql', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ sql: query })
+                    });
+
+                    if (!remoteResponse.ok) {
+                        throw new Error(`HTTP error! status: ${remoteResponse.status}`);
+                    }
+
+                    const remoteResults = await remoteResponse.json();
+                    console.log('Resultados del endpoint remoto:', remoteResults);
+                }
+            } catch (error) {
+                console.error('Error en la petición:', error);
+                alert('Ocurrió un error al realizar la petición. Por favor, revisa tu conexión a internet y vuelve a intentarlo.');
             }
         });
     </script>
